@@ -1,43 +1,73 @@
-import React from "react";
+import React, { useState } from "react";
+import {
+  IconButton,
+  Tooltip
+} from "@material-ui/core";
+import {
+  Search as SearchIcon,
+  MoreVert as MoreVertIcon
+} from "@material-ui/icons";
 
-import { Card, Button } from "@material-ui/core";
-import { makeStyles } from "@material-ui/core/styles";
-import TicketHeaderSkeleton from "../TicketHeaderSkeleton";
-import ArrowBackIos from "@material-ui/icons/ArrowBackIos";
-import { useHistory } from "react-router-dom";
+import MessageSearchModal from "../MessageSearchModal/";
 
-const useStyles = makeStyles((theme) => ({
-  ticketHeader: {
-    display: "flex",
-    backgroundColor: "#eee",
-    flex: "none",
-    borderBottom: "1px solid rgba(0, 0, 0, 0.12)",
-    [theme.breakpoints.down("sm")]: {
-      flexWrap: "wrap",
-    },
-  },
-}));
+const TicketHeader = ({ ticket, contact, setModalSearchTerm, ...otherProps }) => {
+  const [searchModalOpen, setSearchModalOpen] = useState(false);
 
-const TicketHeader = ({ loading, children }) => {
-  const classes = useStyles();
-  const history = useHistory();
-  const handleBack = () => {
-    history.push("/tickets");
+  const handleMessageClick = (message) => {
+
+    console.log("Navegar para mensagem:", message);
+    
+    
+    const messageElement = document.querySelector(`[data-message-id="${message.id}"]`);
+    if (messageElement) {
+      messageElement.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'center' 
+      });
+      
+   
+      messageElement.style.backgroundColor = '#fff3cd';
+      setTimeout(() => {
+        messageElement.style.backgroundColor = '';
+      }, 3000);
+    }
   };
 
   return (
-    <>
-      {loading ? (
-        <TicketHeaderSkeleton />
-      ) : (
-        <Card square className={classes.ticketHeader}>
-          <Button color="primary" onClick={handleBack}>
-            <ArrowBackIos />
-          </Button>
-          {children}
-        </Card>
-      )}
-    </>
+    <div className="ticket-header"> 
+      {/* Conteúdo existente do header */}
+      <div className="ticket-header-info">
+        {/* Informações do contato, etc. */}
+      </div>
+      
+      <div className="ticket-header-actions">
+        {/* Botão de busca - adicionar ANTES dos 3 pontinhos */}
+        <Tooltip title="Buscar mensagens">
+          <IconButton 
+            onClick={() => setSearchModalOpen(true)}
+            color="inherit"
+          >
+            <SearchIcon />
+          </IconButton>
+        </Tooltip>
+        
+        {/* Botão dos 3 pontinhos existente */}
+        <IconButton color="inherit">
+          <MoreVertIcon />
+        </IconButton>
+      </div>
+
+      {/* Modal de busca */}
+      {console.log("ticketId passado para o modal:", ticket?.id)}
+      <MessageSearchModal
+        open={searchModalOpen}
+        onClose={() => setSearchModalOpen(false)}
+        ticketId={ticket?.id}
+        onMessageClick={handleMessageClick}
+        contactName={contact?.name}
+        setModalSearchTerm={setModalSearchTerm}
+      />
+    </div>
   );
 };
 

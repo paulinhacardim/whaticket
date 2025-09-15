@@ -82,6 +82,7 @@ const Ticket = () => {
   const [loading, setLoading] = useState(true);
   const [contact, setContact] = useState({});
   const [ticket, setTicket] = useState({});
+  const [modalSearchTerm, setModalSearchTerm] = useState("");
 
   useEffect(() => {
     setLoading(true);
@@ -152,7 +153,12 @@ const Ticket = () => {
           [classes.mainWrapperShift]: drawerOpen,
         })}
       >
-        <TicketHeader loading={loading}>
+        <TicketHeader 
+          loading={loading}
+          ticket={ticket}
+          contact={contact}
+          setModalSearchTerm={setModalSearchTerm}
+        >
           <div className={classes.ticketInfo}>
             <TicketInfo
               contact={contact}
@@ -168,6 +174,7 @@ const Ticket = () => {
           <MessagesList
             ticketId={ticketId}
             isGroup={ticket.isGroup}
+            externalSearchTerm={modalSearchTerm}
           ></MessagesList>
           <MessageInput ticketStatus={ticket.status} />
         </ReplyMessageProvider>
