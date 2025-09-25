@@ -5,6 +5,7 @@ import Ticket from "../../models/Ticket";
 import SendWhatsAppMessage from "../WbotServices/SendWhatsAppMessage";
 import ShowWhatsAppService from "../WhatsappService/ShowWhatsAppService";
 import ShowTicketService from "./ShowTicketService";
+import AutoDistributeTicketService from "./AutoDistributeTicketService";
 
 interface TicketData {
   status?: string;
@@ -50,6 +51,17 @@ const UpdateTicketService = async ({
     userId
   });
 
+  // Se uma nova fila foi atribuída e não há userId específico, tenta distribuição automática
+  if (queueId && queueId !== ticket.queueId && !userId && ticket.status === "pending") {
+    try {
+      await AutoDistributeTicketService({
+        queueId,
+        ticketId: ticket.id
+      });
+    } catch (error) {
+      console.log("Erro na distribuição automática:", error);
+    }
+  }
 
   if(whatsappId) {
     await ticket.update({

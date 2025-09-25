@@ -13,6 +13,8 @@ import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import CircularProgress from "@material-ui/core/CircularProgress";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import Switch from "@material-ui/core/Switch";
 
 import { i18n } from "../../translate/i18n";
 
@@ -61,6 +63,7 @@ const QueueSchema = Yup.object().shape({
 		.required("Required"),
 	color: Yup.string().min(3, "Too Short!").max(9, "Too Long!").required(),
 	greetingMessage: Yup.string(),
+	autoDistribution: Yup.boolean(),
 });
 
 const QueueModal = ({ open, onClose, queueId }) => {
@@ -70,6 +73,7 @@ const QueueModal = ({ open, onClose, queueId }) => {
 		name: "",
 		color: "",
 		greetingMessage: "",
+		autoDistribution: false,
 	};
 
 	const [colorPickerModalOpen, setColorPickerModalOpen] = useState(false);
@@ -94,6 +98,7 @@ const QueueModal = ({ open, onClose, queueId }) => {
 				name: "",
 				color: "",
 				greetingMessage: "",
+				autoDistribution: false,
 			});
 		};
 	}, [queueId, open]);
@@ -105,6 +110,7 @@ const QueueModal = ({ open, onClose, queueId }) => {
 
 	const handleSaveQueue = async values => {
 		try {
+			console.log("Dados sendo enviados:", values); // Debug
 			if (queueId) {
 				await api.put(`/queue/${queueId}`, values);
 			} else {
@@ -113,6 +119,7 @@ const QueueModal = ({ open, onClose, queueId }) => {
 			toast.success("Queue saved successfully");
 			handleClose();
 		} catch (err) {
+			console.error("Erro ao salvar fila:", err); // Debug
 			toastError(err);
 		}
 	};
@@ -212,6 +219,31 @@ const QueueModal = ({ open, onClose, queueId }) => {
 										variant="outlined"
 										margin="dense"
 									/>
+								</div>
+								<div>
+									<Field
+										name="autoDistribution"
+									>
+										{({ field }) => (
+											<FormControlLabel
+												control={
+													<Switch
+														{...field}
+														checked={field.value || false}
+														onChange={(e) => field.onChange({
+															target: {
+																name: field.name,
+																value: e.target.checked
+															}
+														})}
+														name="autoDistribution"
+														color="primary"
+													/>
+												}
+												label="Distribuição Automática"
+											/>
+										)}
+									</Field>
 								</div>
 							</DialogContent>
 							<DialogActions>

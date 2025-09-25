@@ -3,11 +3,13 @@ import * as Yup from "yup";
 import AppError from "../../errors/AppError";
 import Queue from "../../models/Queue";
 import ShowQueueService from "./ShowQueueService";
+import DistributionService from "../DistributionService/DistributionService";
 
 interface QueueData {
   name?: string;
   color?: string;
   greetingMessage?: string;
+  autoDistribution?: boolean;
 }
 
 const UpdateQueueService = async (
@@ -64,8 +66,20 @@ const UpdateQueueService = async (
   }
 
   const queue = await ShowQueueService(queueId);
+  const wasAutoDistributionEnabled = queue.autoDistribution;
 
   await queue.update(queueData);
+
+  // Se a distribuição automática foi habilitada e não estava antes
+  if (queueData.autoDistribution && !wasAutoDistributionEnabled) {
+    console.log(`Inicializando distribuição automática para fila ${queue.id} (${queue.name})`);
+    await DistributionService.initializeDistribution({ queueId: queue.id });
+  }
+  // Se foi desabilitada, limpar distribuições
+  else if (queueData.autoDistribution === false && wasAutoDistributionEnabled) {
+    console.log(`Removendo distribuição automática para fila ${queue.id} (${queue.name})`);
+    await DistributionService.clearDistribution({ queueId: queue.id });
+  }
 
   return queue;
 };

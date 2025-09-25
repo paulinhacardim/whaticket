@@ -85,7 +85,7 @@ export const searchMessages = async (req: Request, res: Response) => {
     return res.status(400).json({ error: "ticketId inválido" });
   }
 
-  // Busca insensível a acento, maiúsculo e hífen (corrigido para utf8mb4_general_ci)
+  // Busca insensível a acento, maiúsculo e hífen 
   const { count, rows: messages } = await Message.findAndCountAll({
     where: Sequelize.literal(
       `ticketId = ${ticketId} AND REPLACE(LOWER(body), '-', '') COLLATE utf8mb4_general_ci LIKE '%${searchTerm}%'`

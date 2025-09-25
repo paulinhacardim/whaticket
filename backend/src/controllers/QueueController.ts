@@ -1,3 +1,4 @@
+
 import { Request, Response } from "express";
 import { getIO } from "../libs/socket";
 import CreateQueueService from "../services/QueueService/CreateQueueService";
@@ -13,17 +14,34 @@ export const index = async (req: Request, res: Response): Promise<Response> => {
 };
 
 export const store = async (req: Request, res: Response): Promise<Response> => {
-  const { name, color, greetingMessage } = req.body;
+  try {
+    console.log("=== DEBUG POST /queue ===");
+    console.log("1. Dados recebidos:", req.body);
+    console.log("2. Headers:", req.headers.authorization ? "Token presente" : "Sem token");
+    
+    const { name, color, greetingMessage } = req.body;
+    console.log("3. Dados extraídos:", { name, color, greetingMessage });
 
-  const queue = await CreateQueueService({ name, color, greetingMessage });
+    console.log("4. Chamando CreateQueueService...");
+    const queue = await CreateQueueService({ name, color, greetingMessage });
+    console.log("5. Queue criada com sucesso:", queue.id);
 
-  const io = getIO();
-  io.emit("queue", {
-    action: "update",
-    queue
-  });
+    console.log("6. Emitindo socket...");
+    const io = getIO();
+    io.emit("queue", {
+      action: "update",
+      queue
+    });
 
-  return res.status(200).json(queue);
+    console.log("7. Retornando resposta 200");
+    return res.status(200).json(queue);
+    
+  } catch (error) {
+    console.error("=== ERRO NO STORE ===");
+    console.error("Erro detalhado:", error);
+    console.error("Stack:", error.stack);
+    return res.status(500).json({ error: error.message || "Erro interno do servidor" });
+  }
 };
 
 export const show = async (req: Request, res: Response): Promise<Response> => {

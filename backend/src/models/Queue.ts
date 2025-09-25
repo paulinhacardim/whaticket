@@ -8,13 +8,16 @@ import {
   AutoIncrement,
   AllowNull,
   Unique,
-  BelongsToMany
+  BelongsToMany,
+  HasMany,  //uma fila pode ter múltiplas distribuições
+  Default
 } from "sequelize-typescript";
 import User from "./User";
 import UserQueue from "./UserQueue";
 
 import Whatsapp from "./Whatsapp";
 import WhatsappQueue from "./WhatsappQueue";
+import Distributions from "./Distribution";
 
 @Table
 class Queue extends Model<Queue> {
@@ -36,6 +39,10 @@ class Queue extends Model<Queue> {
   @Column
   greetingMessage: string;
 
+  @Default(false)
+  @Column
+  autoDistribution: boolean;
+
   @CreatedAt
   createdAt: Date;
 
@@ -47,6 +54,9 @@ class Queue extends Model<Queue> {
 
   @BelongsToMany(() => User, () => UserQueue)
   users: Array<User & { UserQueue: UserQueue }>;
+
+  @HasMany(() => Distributions)
+  distributions: Distributions[];
 }
 
 export default Queue;

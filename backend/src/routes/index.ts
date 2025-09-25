@@ -14,16 +14,17 @@ import apiRoutes from "./apiRoutes";
 
 const routes = Router();
 
-routes.use(userRoutes);
 routes.use("/auth", authRoutes);
+routes.use(queueRoutes); 
+routes.use(userRoutes);
 routes.use(settingRoutes);
 routes.use(contactRoutes);
 routes.use(ticketRoutes);
 routes.use(whatsappRoutes);
-routes.use(messageRoutes);
 routes.use(whatsappSessionRoutes);
-routes.use(queueRoutes);
 routes.use(quickAnswerRoutes);
 routes.use("/api/messages", apiRoutes);
+// messageRoutes DEVE ficar por ÚLTIMO devido à rota catch-all /:ticketId
+routes.use(messageRoutes);
 
 export default routes;
