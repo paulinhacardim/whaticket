@@ -307,7 +307,7 @@ const reducer = (state, action) => {
   }
 };
 
-const MessagesList = ({ ticketId, isGroup }) => {
+const MessagesList = ({ ticketId, isGroup, externalSearchTerm }) => {
   const classes = useStyles();
 
   const [messagesList, dispatch] = useReducer(reducer, []);
@@ -321,10 +321,19 @@ const MessagesList = ({ ticketId, isGroup }) => {
   const messageOptionsMenuOpen = Boolean(anchorEl);
   const currentTicketId = useRef(ticketId);
 
+  // Novo estado para termo de busca
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Sincroniza termo de busca externo (do modal)
+  useEffect(() => {
+    if (typeof externalSearchTerm === "string") {
+      setSearchTerm(externalSearchTerm);
+    }
+  }, [externalSearchTerm]);
+
   useEffect(() => {
     dispatch({ type: "RESET" });
     setPageNumber(1);
-
     currentTicketId.current = ticketId;
   }, [ticketId]);
 
@@ -333,8 +342,13 @@ const MessagesList = ({ ticketId, isGroup }) => {
     const delayDebounceFn = setTimeout(() => {
       const fetchMessages = async () => {
         try {
-          const { data } = await api.get("/messages/" + ticketId, {
-            params: { pageNumber },
+          const { data } = await api.get("/search", {
+            params: {
+              ticketId: Number(ticketId),
+              page: pageNumber,
+              limit: 40,
+              searchTerm: searchTerm // busca pelo termo digitado
+            },
           });
 
           if (currentTicketId.current === ticketId) {
@@ -356,7 +370,7 @@ const MessagesList = ({ ticketId, isGroup }) => {
     return () => {
       clearTimeout(delayDebounceFn);
     };
-  }, [pageNumber, ticketId]);
+  }, [pageNumber, ticketId, searchTerm]);
 
   useEffect(() => {
     const socket = openSocket();
@@ -598,7 +612,7 @@ const MessagesList = ({ ticketId, isGroup }) => {
             <React.Fragment key={message.id}>
               {renderDailyTimestamps(message, index)}
               {renderMessageDivider(message, index)}
-              <div className={classes.messageLeft}>
+              <div className={classes.messageLeft} id={`message-${message.id}`}>
                 <IconButton
                   variant="contained"
                   size="small"
@@ -632,7 +646,7 @@ const MessagesList = ({ ticketId, isGroup }) => {
             <React.Fragment key={message.id}>
               {renderDailyTimestamps(message, index)}
               {renderMessageDivider(message, index)}
-              <div className={classes.messageRight}>
+              <div className={classes.messageRight} id={`message-${message.id}`}>
                 <IconButton
                   variant="contained"
                   size="small"
@@ -684,6 +698,7 @@ const MessagesList = ({ ticketId, isGroup }) => {
         menuOpen={messageOptionsMenuOpen}
         handleClose={handleCloseMessageOptionsMenu}
       />
+      {/* Campo de busca removido, busca será feita apenas pelo modal/lupa */}
       <div
         id="messagesList"
         className={classes.messagesList}

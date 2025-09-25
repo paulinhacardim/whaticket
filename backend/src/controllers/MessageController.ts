@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { Op, Sequelize } from "sequelize";
 
 import SetTicketMessagesAsRead from "../helpers/SetTicketMessagesAsRead";
 import { getIO } from "../libs/socket";
@@ -72,4 +73,27 @@ export const remove = async (
   });
 
   return res.send();
+};
+
+export const searchMessages = async (req: Request, res: Response) => {
+  const ticketId = Number(req.query.ticketId);
+  const searchTerm = (req.query.searchTerm || "").toString().toLowerCase().replace(/-/g, "");
+  const offset = Number(req.query.offset) || 0;
+  const pageSize = Number(req.query.limit) || 40;
+
+  if (isNaN(ticketId)) {
+    return res.status(400).json({ error: "ticketId inválido" });
+  }
+
+  // Busca insensível a acento, maiúsculo e hífen 
+  const { count, rows: messages } = await Message.findAndCountAll({
+    where: Sequelize.literal(
+      `ticketId = ${ticketId} AND REPLACE(LOWER(body), '-', '') COLLATE utf8mb4_general_ci LIKE '%${searchTerm}%'`
+    ),
+    order: [["createdAt", "ASC"]],
+    offset,
+    limit: pageSize
+  });
+
+  return res.json({ count, messages, hasMore: offset + messages.length < count });
 };

@@ -3,6 +3,7 @@ import { Op } from "sequelize";
 import Contact from "../../models/Contact";
 import Ticket from "../../models/Ticket";
 import ShowTicketService from "./ShowTicketService";
+import AutoDistributeTicketService from "./AutoDistributeTicketService";
 
 const FindOrCreateTicketService = async (
   contact: Contact,
@@ -71,6 +72,19 @@ const FindOrCreateTicketService = async (
       unreadMessages,
       whatsappId
     });
+
+    // Distribuição automática para filas com autoDistribution habilitado
+    if (ticket.queueId) {
+      try {
+        await AutoDistributeTicketService({
+          queueId: ticket.queueId,
+          ticketId: ticket.id
+        });
+      } catch (error) {
+        console.error("Erro na distribuição automática:", error);
+        // Não quebra o fluxo, apenas loga o erro
+      }
+    }
   }
 
   ticket = await ShowTicketService(ticket.id);
